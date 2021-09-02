@@ -1,0 +1,29 @@
+version: 2
+
+updates:
+  - allow:
+      - dependency-type: direct
+    commit-message:
+      include: scope
+      prefix: chore
+    directory: /
+    open-pull-requests-limit: 99
+    package-ecosystem: github-actions
+    reviewers:
+      - "ridedott/android-rider"
+    schedule:
+      interval: daily
+  - allow:
+      - dependency-type: direct
+    commit-message:
+      include: scope
+      prefix: chore
+    directory: /
+    open-pull-requests-limit: 99
+    package-ecosystem: gradle
+    reviewers:
+      - "ridedott/android-rider"
+    labels:
+      - "dependencies"
+    schedule:
+      interval: daily
