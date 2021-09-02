@@ -1,30 +1,30 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
 plugins {
+    id("com.github.hierynomus.license") version "0.16.1"
+    id("com.gradle.plugin-publish") version "0.15.0"
+    id("org.jlleitschuh.gradle.ktlint") version "10.1.0"
     `java-gradle-plugin`
-    kotlin("jvm") version "1.3.50"
-    id("com.github.hierynomus.license") version "0.15.0"
-    id("com.gradle.plugin-publish") version "0.10.1"
+    kotlin("jvm") version "1.5.21"
     `kotlin-dsl`
     `maven-publish`
-    id("org.jlleitschuh.gradle.ktlint") version "8.2.0"
 }
 
 group = "com.ridedott"
 version = "1.0.0"
 
 repositories {
-    jcenter()
+    google()
+    mavenCentral()
 }
 
 dependencies {
-    implementation("com.google.cloud:google-cloud-storage:1.96.0")
+    implementation(platform("com.google.cloud:libraries-bom:22.0.0"))
+    implementation("com.google.cloud:google-cloud-storage") {
+        // exclude guava as it conflicts with the Android Gradle plugin
+        exclude("com.google.guava:guava")
+    }
     implementation(kotlin("stdlib-jdk8"))
-}
-
-ktlint {
-    reporters.set(setOf(ReporterType.PLAIN, ReporterType.CHECKSTYLE))
 }
 
 gradlePlugin {
