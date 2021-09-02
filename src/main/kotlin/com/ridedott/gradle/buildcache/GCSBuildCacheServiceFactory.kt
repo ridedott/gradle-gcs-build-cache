@@ -34,10 +34,10 @@ class GCSBuildCacheServiceFactory : BuildCacheServiceFactory<GCSBuildCache> {
         val bucket = configuration.bucket.takeIf { it.isNotEmpty() }
             ?: throw GradleException("Bucket name was not defined. Check GitHub for instructions.")
 
-        val credentialsDescription = if (configuration.credentials.isEmpty()) {
-            "application default"
-        } else {
-            "from file: ${configuration.credentials}"
+        val credentialsDescription = when {
+            configuration.serviceAccountCredentialsJSON.isNotEmpty() -> "from JSON"
+            configuration.serviceAccountCredentialsFilePath.isNotEmpty() -> "from file: ${configuration.serviceAccountCredentialsFilePath}"
+            else -> "application default"
         }
 
         val expireAfterSeconds = configuration.expireAfterSeconds
@@ -48,6 +48,11 @@ class GCSBuildCacheServiceFactory : BuildCacheServiceFactory<GCSBuildCache> {
             .config("bucket", bucket)
             .config("expireAfterSeconds", expireAfterSeconds.toString())
 
-        return GCSBuildCacheService(configuration.credentials, bucket, expireAfterSeconds)
+        return GCSBuildCacheService(
+            bucket,
+            expireAfterSeconds,
+            configuration.serviceAccountCredentialsFilePath,
+            configuration.serviceAccountCredentialsJSON,
+        )
     }
 }
