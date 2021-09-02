@@ -1,5 +1,6 @@
 /**
  * Copyright 2019 Thorsten Ehlers
+ * Copyright 2021 Dott B.V., Netherlands
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +14,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.idlestate.gradle.caching
+package com.ridedott.gradle.buildcache
 
-import org.gradle.caching.configuration.AbstractBuildCache
+import org.gradle.api.Plugin
+import org.gradle.api.initialization.Settings
 
 /**
- * Configuration of the GCS based build cache.
+ * Settings-Plugin that configures the remote build cache to use the Google Cloud Storage based implementation.
  *
  * @author Thorsten Ehlers (thorsten.ehlers@googlemail.com) (initial creation)
  */
-abstract class GCSBuildCache(
-    var credentials: String? = "",
-    var bucket: String? = "",
-    var refreshAfterSeconds: Int? = 0
-) : AbstractBuildCache()
+class GCSBuildCachePlugin : Plugin<Settings> {
+
+    override fun apply(settings: Settings) {
+        settings.buildCache {
+            registerBuildCacheService(
+                GCSBuildCache::class.java,
+                GCSBuildCacheServiceFactory::class.java,
+            )
+            remote(GCSBuildCache::class.java) {
+                isPush = true
+            }
+        }
+    }
+}

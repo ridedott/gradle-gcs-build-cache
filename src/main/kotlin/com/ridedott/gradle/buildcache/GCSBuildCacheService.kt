@@ -1,5 +1,6 @@
 /**
  * Copyright 2019 Thorsten Ehlers
+ * Copyright 2021 Dott B.V., Netherlands
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.idlestate.gradle.caching
+package com.ridedott.gradle.buildcache
 
+import com.google.auth.oauth2.GoogleCredentials
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.storage.Bucket
 import com.google.cloud.storage.StorageException
@@ -38,17 +40,26 @@ import java.time.Instant
  *
  * @author Thorsten Ehlers (thorsten.ehlers@googlemail.com) (initial creation)
  */
-class GCSBuildCacheService(credentials: String, val bucketName: String, val refreshAfterSeconds: Long) : BuildCacheService {
+class GCSBuildCacheService(
+    credentials: String,
+    private val bucketName: String,
+    private val expireAfterSeconds: Long,
+) : BuildCacheService {
+
     private val bucket: Bucket
 
     init {
         try {
+            val storageCredentials = credentials.takeIf { it.isNotEmpty() }
+                ?.let { ServiceAccountCredentials.fromStream(FileInputStream(it)) }
+                ?: GoogleCredentials.getApplicationDefault()
             val storage = StorageOptions.newBuilder()
-                .setCredentials(ServiceAccountCredentials.fromStream(FileInputStream(credentials)))
+                .setCredentials(storageCredentials)
                 .build()
                 .service
 
-            bucket = storage.get(bucketName) ?: throw BuildCacheException("$bucketName is unavailable")
+            bucket = storage.get(bucketName)
+                ?: throw BuildCacheException("$bucketName is unavailable")
         } catch (e: FileNotFoundException) {
             throw BuildCacheException("Unable to load credentials from $credentials.", e)
         } catch (e: IOException) {
@@ -65,7 +76,10 @@ class GCSBuildCacheService(credentials: String, val bucketName: String, val refr
         try {
             bucket.create(key.hashCode, value.toByteArray())
         } catch (e: StorageException) {
-            throw BuildCacheException("Unable to store '${key.hashCode}' in Google Cloud Storage bucket '$bucketName'.", e)
+            throw BuildCacheException(
+                "Unable to store '${key.hashCode}' in Google Cloud Storage bucket '$bucketName'.",
+                e
+            )
         }
     }
 
@@ -76,10 +90,10 @@ class GCSBuildCacheService(credentials: String, val bucketName: String, val refr
             if (blob != null) {
                 reader.readFrom(Channels.newInputStream(blob.reader()))
 
-                if (refreshAfterSeconds > 0) {
+                if (expireAfterSeconds > 0) {
                     // Update creation time so that artifacts that are still used won't be deleted.
                     val createTime = Instant.ofEpochMilli(blob.createTime)
-                    if (createTime.plusSeconds(refreshAfterSeconds).isBefore(Instant.now())) {
+                    if (createTime.plusSeconds(expireAfterSeconds).isBefore(Instant.now())) {
                         bucket.create(key.hashCode, blob.getContent())
                     }
                 }
@@ -92,7 +106,10 @@ class GCSBuildCacheService(credentials: String, val bucketName: String, val refr
                 return false
             }
 
-            throw BuildCacheException("Unable to load '${key.hashCode}' from Google Cloud Storage bucket '$bucketName'.", e)
+            throw BuildCacheException(
+                "Unable to load '${key.hashCode}' from Google Cloud Storage bucket '$bucketName'.",
+                e
+            )
         }
 
         return false
