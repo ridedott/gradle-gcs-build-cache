@@ -26,6 +26,7 @@ import org.gradle.caching.configuration.AbstractBuildCache
  */
 abstract class GCSBuildCache(
     var bucket: String = "",
-    var credentials: String = "",
+    var serviceAccountCredentialsFilePath: String = "",
+    var serviceAccountCredentialsJSON: String = "",
     var expireAfterSeconds: Long = 0L
 ) : AbstractBuildCache()

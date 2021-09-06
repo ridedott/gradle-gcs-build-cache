@@ -16,7 +16,7 @@
  */
 package com.ridedott.gradle.buildcache
 
-import com.google.auth.oauth2.GoogleCredentials
+import com.google.auth.Credentials
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.storage.Bucket
 import com.google.cloud.storage.StorageException
@@ -28,7 +28,6 @@ import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.BuildCacheService
 import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
-import java.io.FileNotFoundException
 import java.io.IOException
 import java.nio.channels.Channels
 import java.time.Instant
@@ -41,31 +40,41 @@ import java.time.Instant
  * @author Thorsten Ehlers (thorsten.ehlers@googlemail.com) (initial creation)
  */
 class GCSBuildCacheService(
-    credentials: String,
     private val bucketName: String,
     private val expireAfterSeconds: Long,
+    serviceAccountCredentialsFilePath: String,
+    serviceAccountCredentialsJSON: String,
 ) : BuildCacheService {
 
     private val bucket: Bucket
 
     init {
         try {
-            val storageCredentials = credentials.takeIf { it.isNotEmpty() }
-                ?.let { ServiceAccountCredentials.fromStream(FileInputStream(it)) }
-                ?: GoogleCredentials.getApplicationDefault()
             val storage = StorageOptions.newBuilder()
-                .setCredentials(storageCredentials)
+                .setCredentials(
+                    getCredentials(serviceAccountCredentialsFilePath, serviceAccountCredentialsJSON)
+                )
                 .build()
                 .service
 
             bucket = storage.get(bucketName)
                 ?: throw BuildCacheException("$bucketName is unavailable")
-        } catch (e: FileNotFoundException) {
-            throw BuildCacheException("Unable to load credentials from $credentials.", e)
         } catch (e: IOException) {
             throw BuildCacheException("Unable to access Google Cloud Storage bucket '$bucketName'.", e)
         } catch (e: StorageException) {
             throw BuildCacheException("Unable to access Google Cloud Storage bucket '$bucketName'.", e)
+        }
+    }
+
+    private fun getCredentials(serviceAccountCredentialsFilePath: String, serviceAccountCredentialsJSON: String): Credentials {
+        return when {
+            serviceAccountCredentialsFilePath.isNotEmpty() -> {
+                ServiceAccountCredentials.fromStream(FileInputStream(serviceAccountCredentialsFilePath))
+            }
+            serviceAccountCredentialsJSON.isNotEmpty() -> {
+                ServiceAccountCredentials.fromStream(serviceAccountCredentialsJSON.byteInputStream())
+            }
+            else -> ServiceAccountCredentials.getApplicationDefault()
         }
     }
 
