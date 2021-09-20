@@ -5,7 +5,7 @@ plugins {
     id("com.gradle.plugin-publish") version "0.16.0"
     id("org.jlleitschuh.gradle.ktlint") version "10.2.0"
     `java-gradle-plugin`
-    kotlin("jvm") version "1.5.30"
+    kotlin("jvm") version "1.5.31"
     `kotlin-dsl`
     `maven-publish`
 }
