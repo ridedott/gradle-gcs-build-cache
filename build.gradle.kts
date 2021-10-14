@@ -55,3 +55,6 @@ tasks.withType<KotlinCompile>().configureEach {
 configurations["runtimeElements"].attributes {
     attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8)
 }
+configurations["apiElements"].attributes {
+    attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8)
+}
