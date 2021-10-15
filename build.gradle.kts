@@ -44,8 +44,17 @@ pluginBundle {
     tags = listOf("build-cache", "gcs", "Google Cloud Storage", "cache")
 }
 
-tasks.withType<KotlinCompile>().all {
+tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
+}
+
+// Workaround for runtime variants as discussed:
+// https://youtrack.jetbrains.com/issue/KT-45335
+configurations["runtimeElements"].attributes {
+    attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8)
+}
+configurations["apiElements"].attributes {
+    attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8)
 }
