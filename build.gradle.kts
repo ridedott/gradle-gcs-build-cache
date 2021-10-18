@@ -50,11 +50,11 @@ tasks.withType<KotlinCompile>().configureEach {
     }
 }
 
-// Workaround for runtime variants as discussed:
-// https://youtrack.jetbrains.com/issue/KT-45335
-configurations["runtimeElements"].attributes {
-    attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8)
-}
-configurations["apiElements"].attributes {
-    attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8)
+// Even though jvmTarget is specified above, that only controls the version of bytecode produced
+// Configuring all Java Compile tasks to 1.8 controls the outgoingVariants
+// Using Java toolchains is the easiest way to change all Java Compile tasks to 1.8
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
 }
