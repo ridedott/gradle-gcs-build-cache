@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    implementation(platform("com.google.cloud:libraries-bom:23.1.0"))
+    implementation(platform("com.google.cloud:libraries-bom:24.1.1"))
     implementation("com.google.cloud:google-cloud-storage") {
         // exclude guava as it conflicts with the Android Gradle plugin
         exclude("com.google.guava:guava")
