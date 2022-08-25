@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("com.github.hierynomus.license") version "0.16.1"
     id("com.gradle.plugin-publish") version "0.16.0"
-    id("org.jlleitschuh.gradle.ktlint") version "10.2.0"
+    id("org.jlleitschuh.gradle.ktlint") version "11.0.0"
     `java-gradle-plugin`
     kotlin("jvm") version "1.5.31"
     `kotlin-dsl`
